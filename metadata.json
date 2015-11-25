@@ -7,6 +7,12 @@
   "source": "",
   "project_page": null,
   "issues_url": null,
+  "operatingsystem_support": [
+    {
+    "operatingsystem":"Fedora",
+    "operatingsystemrelease": [ "23" ]
+    }
+   ],
   "dependencies": [
     {"name":"puppetlabs-stdlib","version_requirement":">= 1.0.0"}
   ]
