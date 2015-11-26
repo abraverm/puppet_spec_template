@@ -8,26 +8,35 @@ help:
 
 
 install:
-	@if [[ $$(grep --exclude=Makefile "puppet_spec_template" -R .) ]]; then \
+	@if [[ ! $$EUID -ne 0 ]]; then \
+		RVMPATH="/usr/local/rvm";\
+		RVMRC="/etc/rvmrc";\
+	else \
+		RVMPATH="${HOME}/.rvm";\
+		RVMRC="${HOME}/.rvmrc";\
+	fi; \
+	if [[ $$(grep --exclude=Makefile "puppet_spec_template" -R .) ]]; then \
 		echo "initialize the files with the new module name ${MODULE}" ;\
 		find . ! -name 'Makefile' -type f -exec sed -i "s/puppet_spec_template/${MODULE}/g" {} + ;\
 	fi ;\
-	if [[ ! -e "${HOME}/.rvm/scripts/rvm" ]]; then \
+	if [[ ! -e "$$RVMPATH/scripts/rvm" ]]; then \
 		echo "Installing RVM";\
 		gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 ;\
 		curl -sSL https://get.rvm.io | bash -s stable --ruby ;\
 	fi;\
-	if [[ ! $$(grep -q "rvm_project_rvmrc=1" "${HOME}/.rvmrc") ]]; then \
+	source "$$RVMPATH/scripts/rvm";\
+	if [[ ! $$(grep "rvm_project_rvmrc=1" "$$RVMRC") ]]; then \
 		echo "Setting RVM to allow each project to have own rvm settings";\
-		echo "rvm_project_rvmrc=1" >> "${HOME}/.rvmrc";\
+		cat .rvmrc >> "$$RVMRC";\
 	fi;\
-	if [[ ! $$(grep -q "bundler" "${HOME}/.rvm/gemsets/default.gems") ]]; then \
+	if [[ ! $$(grep "bundler" "$$RVMPATH/gemsets/default.gems") ]]; then \
 		echo "Setting RVM to install 'bundler' gem by default";\
-		echo "bundler" >> "${HOME}/.rvm/gemsets/default.gems";\
+		echo "bundler" >> "$$RVMPATH/gemsets/default.gems";\
 	fi;\
 	echo "Looking for required gems on the system: 'rspec-puppet' and 'wwtd'";\
 	[[ $$(which rspec-puppet-init) ]] || gem install rspec-puppet ;\
 	[[ $$(which wwtd) ]] || gem install wwtd ;\
+	[[ $$(which puppet) ]] || gem install puppet ;\
 	if [[ ! -e "Rakefile" || ! -d "spec" ]]; then \
 		echo "initialize spec and Rakefile";\
 		rspec-puppet-init;\
@@ -55,16 +64,30 @@ install:
 	echo "Everything is installed, to test run 'make test'"
 
 test:
-	@if [[ -e "${HOME}/.rvm/scripts/rvm" ]]; then \
-		source "${HOME}/.rvm/scripts/rvm";\
+	@if [[ ! $$EUID -ne 0 ]]; then \
+		RVMPATH="/usr/local/rvm";\
+		RVMRC="/etc/rvmrc";\
+	else \
+		RVMPATH="${HOME}/.rvm";\
+		RVMRC="${HOME}/.rvmrc";\
+	fi; \
+	if [[ -e "$$RVMPATH/scripts/rvm" ]]; then \
+		source "$$RVMPATH/scripts/rvm";\
 		wwtd -i env;\
 	else \
 		echo "run 'make install' first to prepare your system  for testing" ;\
 	fi
 
 clean:
-	@if [[ -e "${HOME}/.rvm/scripts/rvm" ]]; then \
-		source "${HOME}/.rvm/scripts/rvm";\
+	@if [[ ! $$EUID -ne 0 ]]; then \
+		RVMPATH="/usr/local/rvm";\
+		RVMRC="/etc/rvmrc";\
+	else \
+		RVMPATH="${HOME}/.rvm";\
+		RVMRC="${HOME}/.rvmrc";\
+	fi; \
+	if [[ -e "$$RVMPATH/scripts/rvm" ]]; then \
+		source "$$RVMPATH/scripts/rvm";\
 		wwtd;\
 	else \
 		echo "run 'make install' first to prepare your system  for testing" ;\
