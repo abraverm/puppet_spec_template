@@ -61,7 +61,8 @@ install:
 						"		end\n" \
 				 		"end" > spec/classes/init_spec.rb ;\
 	fi ;\
-	echo "Everything is installed, to test run 'make test'"
+	echo "Everything is installed, to test run 'make test'";\
+	exit 0
 
 test:
 	@if [[ ! $$EUID -ne 0 ]]; then \
@@ -71,12 +72,14 @@ test:
 		RVMPATH="${HOME}/.rvm";\
 		RVMRC="${HOME}/.rvmrc";\
 	fi; \
-	if [[ -e "$$RVMPATH/scripts/rvm" ]]; then \
+	{ \
 		source "$$RVMPATH/scripts/rvm";\
 		wwtd -i env;\
-	else \
+		exit 0;\
+	} || { \
 		echo "run 'make install' first to prepare your system  for testing" ;\
-	fi
+		exit 1;\
+	}
 
 clean:
 	@if [[ ! $$EUID -ne 0 ]]; then \
@@ -86,12 +89,14 @@ clean:
 		RVMPATH="${HOME}/.rvm";\
 		RVMRC="${HOME}/.rvmrc";\
 	fi; \
-	if [[ -e "$$RVMPATH/scripts/rvm" ]]; then \
+	{ \
 		source "$$RVMPATH/scripts/rvm";\
 		wwtd;\
-	else \
+		exit 0;\
+	} || { \
 		echo "run 'make install' first to prepare your system  for testing" ;\
-	fi
+		exit 1;\
+	}
 
 purge:
 	rm -rf Rakefile spec/spec_helper.rb .gemfiles/*.lock .bundle
